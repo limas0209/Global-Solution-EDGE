@@ -1,0 +1,59 @@
+CÓDIGO FONTE
+
+// Definição das portas
+int echo = 11;
+int trig = 12;
+int som = 2;
+int led = 4;
+
+unsigned long tempoInicioAlarme = 0; // Variável para armazenar o tempo de início do alarme
+const unsigned long duracaoAlarme = 10000; // Duração do alarme em milissegundos (10 segundos)
+
+void setup() {
+  pinMode(echo, INPUT);  // Definição pino de entrada
+  pinMode(trig, OUTPUT);  // Definição pino de saída
+  pinMode(som, OUTPUT);  // Definição do pino de saída
+  pinMode(led, OUTPUT);  // Definição do pino de saída
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Definição das variáveis
+  int duracao;
+  float distancia;
+  float velocidade = 0.034;
+
+  digitalWrite(trig, HIGH);  // Emitir o som
+  delayMicroseconds(10);  // Tempo de intervalo
+  digitalWrite(trig, LOW);  // Desliga a emissão de som
+  delayMicroseconds(10);  // Tempo de intervalo
+  
+  duracao = pulseIn(echo, HIGH);  // Deixar o echo em sinal alto
+  duracao = duracao / 2;  // Saber a distância de ida
+  
+  distancia = duracao * velocidade;  // Fórmula para calcular a distância
+  
+  Serial.print(distancia);  // Mostrar distância no monitor serial
+  Serial.println(" cm");
+  
+  delay(500);
+  
+  if (distancia < 50) {  // Definindo condição
+    digitalWrite(led, HIGH);  // Ligar o LED
+    if (tempoInicioAlarme == 0) { // Iniciar contagem de tempo se o alarme ainda não estiver ativo
+      tempoInicioAlarme = millis();
+    }
+    if (millis() - tempoInicioAlarme <= duracaoAlarme) { // Verificar se o tempo de alarme ainda não foi atingido
+      tone(som, 6000, 300);  // Tocar o buzzer
+    } else {
+      noTone(som);  // Desligar o buzzer
+      digitalWrite(led, LOW);  // Desligar o LED
+    }
+    Serial.println("Inseto Detectado");
+  } else {
+    digitalWrite(led, LOW);  // Desligar o LED
+    noTone(som);  // Desligar o buzzer
+    tempoInicioAlarme = 0; // Reiniciar contagem de tempo quando não houver alarme
+    Serial.println("Sem presenca de insetos");
+  }
+}
